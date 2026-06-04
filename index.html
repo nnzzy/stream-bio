@@ -50,12 +50,6 @@
     align-items: flex-start;
     min-height: 100vh;
     padding: 60px 16px;
-    /* grid background ใช้ CSS custom property เพื่อลด repaint */
-    background-image:
-      linear-gradient(var(--grid-color) 1px, transparent 1px),
-      linear-gradient(90deg, var(--grid-color) 1px, transparent 1px);
-    background-size: 30px 30px;
-    background-attachment: local; /* ป้องกัน jank ตอน scroll บนมือถือ */
     /* transition เฉพาะ property ที่จำเป็น ไม่ใช้ shorthand "all" */
     transition: background-color 0.3s ease, color 0.3s ease;
   }
@@ -172,12 +166,12 @@
   }
 
   .card-content {
-    height: 62px;
+    min-height: 62px;
+    height: auto;
     position: relative;
     display: flex;
     align-items: center;
-    padding-left: 86px;
-    padding-right: 14px;
+    padding: 8px 14px 8px 86px;
   }
 
   .card-avatar {
@@ -206,12 +200,13 @@
 
   .platform-name {
     font-size: 14px; font-weight: 600; line-height: 1.25;
-    /* ป้องกัน text ล้น */
     white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
   }
   .platform-sub {
     font-size: 11px; color: var(--text-sub);
-    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    white-space: normal;
+    line-height: 1.45;
+    margin-top: 2px;
   }
 
   .bottom-bar {
@@ -232,7 +227,6 @@
     body { padding: 50px 10px; }
     .main-card { padding: 28px 14px; border-radius: 18px; }
     .card-banner { height: 60px; }
-    .platform-sub { display: none; } /* ซ่อน subtitle บนจอเล็กมาก */
   }
 
   /* --- ลด animation สำหรับคนที่ตั้ง reduce-motion --- */
