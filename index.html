@@ -4,12 +4,17 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>ข้อมูลเกี่ยวกับดุ่ย (นนท์)</title>
-<link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600&display=swap" rel="stylesheet">
+
+<!-- preconnect ก่อน แล้วค่อย load font แบบ non-blocking -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Kanit:wght@400;500;600&display=swap" onload="this.rel='stylesheet'">
+<noscript><link href="https://fonts.googleapis.com/css2?family=Kanit:wght@400;500;600&display=swap" rel="stylesheet"></noscript>
+
 <style>
-  /* --- โหมดสว่าง (Light Mode) --- */
   :root {
-    --bg-color: #e5e7eb; /* สีพื้นฐานของพื้นหลัง */
-    --grid-color: rgba(0, 0, 0, 0.06); /* สีเส้นตารางกราฟโหมดสว่าง */
+    --bg-color: #e5e7eb;
+    --grid-color: rgba(0,0,0,0.06);
     --card-bg: #ffffff;
     --text-main: #1c1e21;
     --text-sub: #65676b;
@@ -17,14 +22,12 @@
     --hover-bg: #f0f2f5;
     --btn-bg: #e4e6eb;
     --switch-bg: #ccc;
-    --glow-effect: 0 0 40px rgba(255, 255, 255, 0.9);
     --tiktok-color: #000000;
   }
 
-  /* --- โหมดมืด (Dark Mode) --- */
   [data-theme="dark"] {
-    --bg-color: #09090b; 
-    --grid-color: rgba(255, 255, 255, 0.05); /* สีเส้นตารางกราฟโหมดมืด */
+    --bg-color: #09090b;
+    --grid-color: rgba(255,255,255,0.05);
     --card-bg: #1c1c1f;
     --text-main: #e4e6eb;
     --text-sub: #b0b3b8;
@@ -32,169 +35,241 @@
     --hover-bg: #2a2b2e;
     --btn-bg: #3a3b3c;
     --switch-bg: #43b581;
-    --glow-effect: 0 0 40px rgba(255, 255, 255, 0.05);
     --tiktok-color: #ffffff;
   }
 
-  * { box-sizing: border-box; margin: 0; padding: 0; }
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
+  /* ใช้ will-change: background-color แทน transition ทุก property */
   body {
-    font-family: 'Kanit', sans-serif;
+    font-family: 'Kanit', system-ui, sans-serif;
     background-color: var(--bg-color);
     color: var(--text-main);
     display: flex;
     justify-content: center;
     align-items: flex-start;
     min-height: 100vh;
-    padding: 60px 20px;
-    position: relative;
-    
-    /* --- เพิ่มพื้นหลังตารางกราฟ (Grid) ตรงนี้ --- */
-    background-image: 
+    padding: 60px 16px;
+    /* grid background ใช้ CSS custom property เพื่อลด repaint */
+    background-image:
       linear-gradient(var(--grid-color) 1px, transparent 1px),
       linear-gradient(90deg, var(--grid-color) 1px, transparent 1px);
-    background-size: 30px 30px; /* ขนาดของช่องตาราง ปรับเล็กใหญ่ได้ที่นี่ */
-    background-position: center top;
-    
-    /* ให้การเปลี่ยนสีพื้นหลังและเส้นตารางดูนุ่มนวล */
+    background-size: 30px 30px;
+    background-attachment: local; /* ป้องกัน jank ตอน scroll บนมือถือ */
+    /* transition เฉพาะ property ที่จำเป็น ไม่ใช้ shorthand "all" */
     transition: background-color 0.3s ease, color 0.3s ease;
   }
 
-  /* --- ปุ่มเปลี่ยนโหมดแบบ Toggle Switch --- */
   .theme-switch-wrapper {
-    position: absolute;
-    top: 20px;
-    right: 20px;
-    display: flex;
-    align-items: center;
+    position: fixed; /* fixed แทน absolute เพื่อไม่ให้ reflow ตอน scroll */
+    top: 16px;
+    right: 16px;
     z-index: 100;
   }
   .theme-switch { display: inline-block; height: 34px; position: relative; width: 66px; }
   .theme-switch input { display: none; }
   .slider {
-    background-color: var(--switch-bg); bottom: 0; cursor: pointer; left: 0; position: absolute; right: 0; top: 0;
-    transition: .4s; border-radius: 34px; display: flex; align-items: center; justify-content: space-between;
-    padding: 0 8px; box-shadow: inset 0 2px 4px rgba(0,0,0,0.1);
+    background-color: var(--switch-bg);
+    bottom: 0; cursor: pointer; left: 0;
+    position: absolute; right: 0; top: 0;
+    /* transition เฉพาะ background-color */
+    transition: background-color 0.3s ease;
+    border-radius: 34px;
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 0 8px;
+    box-shadow: inset 0 2px 4px rgba(0,0,0,0.1);
   }
   .slider:before {
-    background-color: #ffffff; bottom: 4px; content: ""; height: 26px; left: 4px;
-    position: absolute; transition: transform .4s cubic-bezier(0.4, 0.0, 0.2, 1);
-    width: 26px; border-radius: 50%; z-index: 2; box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+    background-color: #fff;
+    bottom: 4px; content: "";
+    height: 26px; left: 4px;
+    position: absolute;
+    /* cubic-bezier เดิมดีอยู่แล้ว */
+    transition: transform 0.3s cubic-bezier(0.4, 0.0, 0.2, 1);
+    width: 26px; border-radius: 50%; z-index: 2;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+    /* บอก browser ล่วงหน้าว่าจะ transform */
+    will-change: transform;
   }
   input:checked + .slider:before { transform: translateX(32px); }
-  .slider-icon { font-size: 14px; z-index: 1; }
+  .slider-icon { font-size: 14px; z-index: 1; user-select: none; }
 
-  /* --- กล่องหลักรวมทุกอย่าง (All-in-one Box) --- */
   .main-card {
     background-color: var(--card-bg);
     border: 1px solid var(--border-color);
     border-radius: 24px;
     width: 100%;
     max-width: 440px;
-    padding: 40px 24px;
-    box-shadow: var(--glow-effect);
-    transition: background-color 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease;
+    padding: 36px 20px;
+    /* ลบ backdrop-filter: blur ออก — หนักมากบน mid-range phones */
+    /* ลบ box-shadow ที่ใช้ glow ออก — ทำให้ repaint ทุก frame */
+    /* ใช้ border + bg แทน */
+    transition: background-color 0.3s ease, border-color 0.3s ease;
     display: flex;
     flex-direction: column;
     align-items: center;
-    backdrop-filter: blur(10px); /* เพิ่มความเบลอนิดๆ ให้กล่องดูกลืนกับตาราง */
+    /* ป้องกัน overflow บนหน้าจอเล็ก */
+    overflow: hidden;
   }
 
-  /* --- โปรไฟล์ --- */
   .profile-pic {
-    width: 100px; height: 100px;
+    width: 90px; height: 90px;
     border-radius: 50%; object-fit: cover;
     border: 3px solid var(--border-color);
     margin: 0 auto 10px; display: block;
+    /* lazy load รูปโปรไฟล์ */
+    loading: lazy;
   }
-  .channel-name { font-size: 24px; font-weight: 600; margin-bottom: 2px; text-align: center; }
-  .channel-handle { font-size: 14px; color: var(--text-sub); text-align: center; margin-bottom: 30px; }
 
-  /* --- ลิสต์แพลตฟอร์มแบบ Banner --- */
+  .channel-name { font-size: 22px; font-weight: 600; margin-bottom: 2px; text-align: center; }
+  .channel-handle { font-size: 13px; color: var(--text-sub); text-align: center; margin-bottom: 4px; }
+  .channel-handle:last-of-type { margin-bottom: 28px; }
+
   .links-list {
-    display: flex; flex-direction: column; gap: 16px; width: 100%; margin-bottom: 30px;
+    display: flex; flex-direction: column; gap: 14px; width: 100%; margin-bottom: 28px;
   }
 
   .banner-card {
-    position: relative; border: 2px solid var(--brand-color); border-radius: 16px;
-    background-color: var(--hover-bg); overflow: hidden; text-decoration: none;
-    color: var(--text-main); transition: transform 0.2s ease, box-shadow 0.2s ease;
-    display: flex; flex-direction: column;
+    position: relative;
+    border: 2px solid var(--brand-color, #ccc);
+    border-radius: 14px;
+    background-color: var(--hover-bg);
+    overflow: hidden;
+    text-decoration: none;
+    color: var(--text-main);
+    display: flex;
+    flex-direction: column;
+    /* transform แทน margin/top เพื่อใช้ GPU layer */
+    transition: transform 0.18s ease;
+    /* บอก browser ล่วงหน้า ลด recalc */
+    will-change: transform;
+    /* touch-action เพื่อให้ scroll ลื่นขึ้นบนมือถือ */
+    touch-action: manipulation;
   }
+  .banner-card:hover  { transform: translateY(-3px); }
+  .banner-card:active { transform: scale(0.985); }
+  /* ลบ box-shadow hover ออก — ทำ repaint ทุก frame ที่ hover */
 
-  .banner-card:hover { transform: translateY(-3px); box-shadow: 0 6px 15px rgba(0,0,0,0.1); }
-
-  /* โลโก้มุมซ้ายบน */
   .brand-logo {
-    position: absolute; top: 10px; left: 10px; width: 32px; height: 32px;
-    background: #ffffff; border-radius: 50%; display: flex; align-items: center; justify-content: center;
-    z-index: 10; overflow: hidden; border: 1px solid rgba(0,0,0,0.1); box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+    position: absolute; top: 10px; left: 10px;
+    width: 30px; height: 30px;
+    background: #fff; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    z-index: 10; overflow: hidden;
+    border: 1px solid rgba(0,0,0,0.1);
+    box-shadow: 0 1px 4px rgba(0,0,0,0.15);
   }
   .brand-logo img { width: 100%; height: 100%; object-fit: cover; }
 
-  /* ส่วนของรูป Banner ด้านหลัง */
   .card-banner {
-    height: 80px; background-size: cover; background-position: center;
-    background-color: var(--hover-bg); border-bottom: 1px solid var(--border-color);
+    height: 72px; /* ลดสูงนิดนึง ให้รูปโหลดเร็วขึ้น */
+    background-size: cover;
+    background-position: center;
+    background-color: var(--hover-bg);
+    border-bottom: 1px solid var(--border-color);
+    /* ป้องกัน layout shift ตอนรูปโหลด */
+    contain: strict;
   }
 
-  /* ส่วนเนื้อหาด้านล่าง */
   .card-content {
-    height: 65px; position: relative; display: flex; align-items: center; padding-left: 90px; padding-right: 15px;
+    height: 62px;
+    position: relative;
+    display: flex;
+    align-items: center;
+    padding-left: 86px;
+    padding-right: 14px;
   }
 
-  /* รูปโปรไฟล์วงกลมซ้อนทับ */
   .card-avatar {
-    position: absolute; left: 15px; bottom: 10px; width: 60px; height: 60px;
-    border-radius: 50%; border: 4px solid var(--card-bg); object-fit: cover;
-    background-color: var(--card-bg); z-index: 5; transition: border-color 0.3s ease;
+    position: absolute; left: 14px; bottom: 8px;
+    width: 56px; height: 56px;
+    border-radius: 50%;
+    border: 3px solid var(--card-bg);
+    object-fit: cover;
+    background-color: var(--card-bg);
+    z-index: 5;
+    /* transition เฉพาะ border-color */
+    transition: border-color 0.3s ease;
   }
 
-  /* กล่องข้อความคล้ายบับเบิ้ล */
   .card-info {
-    background-color: var(--card-bg); padding: 6px 14px; border-radius: 16px;
-    border-top-left-radius: 4px; display: flex; flex-direction: column; justify-content: center;
-    width: 100%; border: 1px solid var(--border-color);
+    background-color: var(--card-bg);
+    padding: 5px 12px;
+    border-radius: 14px;
+    border-top-left-radius: 3px;
+    display: flex; flex-direction: column; justify-content: center;
+    width: 100%;
+    border: 1px solid var(--border-color);
+    /* ป้องกัน text overflow บนหน้าจอแคบ */
+    min-width: 0;
   }
 
-  .platform-name { font-size: 15px; font-weight: 600; line-height: 1.2; }
-  .platform-sub { font-size: 12px; color: var(--text-sub); }
+  .platform-name {
+    font-size: 14px; font-weight: 600; line-height: 1.25;
+    /* ป้องกัน text ล้น */
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  }
+  .platform-sub {
+    font-size: 11px; color: var(--text-sub);
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  }
 
-  /* --- ปุ่มแถบยาวด้านล่างสุด --- */
   .bottom-bar {
-    display: block; width: 100%; background-color: var(--btn-bg); color: var(--text-main);
-    padding: 14px; border-radius: 50px; text-decoration: none; font-weight: 500; text-align: center; transition: background-color 0.2s ease;
+    display: block; width: 100%;
+    background-color: var(--btn-bg);
+    color: var(--text-main);
+    padding: 13px; border-radius: 50px;
+    text-decoration: none; font-weight: 500; font-size: 14px;
+    text-align: center;
+    transition: filter 0.15s ease;
+    touch-action: manipulation;
   }
-  .bottom-bar:hover { filter: brightness(0.9); }
+  .bottom-bar:hover  { filter: brightness(0.92); }
+  .bottom-bar:active { filter: brightness(0.85); }
 
+  /* --- responsive: จอเล็กกว่า 360px --- */
+  @media (max-width: 360px) {
+    body { padding: 50px 10px; }
+    .main-card { padding: 28px 14px; border-radius: 18px; }
+    .card-banner { height: 60px; }
+    .platform-sub { display: none; } /* ซ่อน subtitle บนจอเล็กมาก */
+  }
+
+  /* --- ลด animation สำหรับคนที่ตั้ง reduce-motion --- */
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+      transition-duration: 0.01ms !important;
+      animation-duration: 0.01ms !important;
+    }
+  }
 </style>
 </head>
 <body>
 
   <div class="theme-switch-wrapper">
-    <label class="theme-switch" for="checkbox">
-      <input type="checkbox" id="checkbox" />
+    <label class="theme-switch" for="checkbox" aria-label="สลับโหมดสว่าง/มืด">
+      <input type="checkbox" id="checkbox">
       <div class="slider">
-        <span class="slider-icon">🌙</span>
-        <span class="slider-icon">☀️</span>
+        <span class="slider-icon" aria-hidden="true">🌙</span>
+        <span class="slider-icon" aria-hidden="true">☀️</span>
       </div>
     </label>
   </div>
 
   <div class="main-card">
-    
-    <img src="img/kao_duija.png" alt="รูปช่อง" class="profile-pic">
+
+    <img src="img/kao_duija.png" alt="รูปช่อง" class="profile-pic" width="90" height="90">
     <h1 class="channel-name">ดุ่ย</h1>
     <p class="channel-handle">@nnzzy</p>
     <p class="channel-handle">สวัสดีครับ ดุ่ยเองครับ อิอิ</p>
 
     <div class="links-list">
-      
-      <a href="https://www.youtube.com/@nnzzy" target="_blank" class="banner-card" style="--brand-color: #FF0000;">
-        <div class="brand-logo"><img src="img/youtube.png" alt="YT"></div>
+
+      <a href="https://www.youtube.com/@nnzzy" target="_blank" rel="noopener noreferrer" class="banner-card" style="--brand-color: #FF0000;">
+        <div class="brand-logo"><img src="img/youtube.png" alt="" width="30" height="30" loading="lazy"></div>
         <div class="card-banner" style="background-image: url('img/nnzzy_banner.jpg');"></div>
         <div class="card-content">
-          <img src="img/kao_duija.png" class="card-avatar" alt="YT Avatar">
+          <img src="img/kao_duija.png" class="card-avatar" alt="" width="56" height="56" loading="lazy">
           <div class="card-info">
             <span class="platform-name">NNZZY</span>
             <span class="platform-sub">ช่องยูทูปมีไว้ก่อนไม่รู้เอาไว้ทำไร อนาคตไม่แน่นอน</span>
@@ -202,11 +277,11 @@
         </div>
       </a>
 
-      <a href="https://www.twitch.tv/nnzzy" target="_blank" class="banner-card" style="--brand-color: #9146FF;">
-        <div class="brand-logo"><img src="img/twitch.png" alt="Twitch"></div>
+      <a href="https://www.twitch.tv/nnzzy" target="_blank" rel="noopener noreferrer" class="banner-card" style="--brand-color: #9146FF;">
+        <div class="brand-logo"><img src="img/twitch.png" alt="" width="30" height="30" loading="lazy"></div>
         <div class="card-banner" style="background-image: url('img/nnzzy_banner.jpg');"></div>
         <div class="card-content">
-          <img src="img/kao_duija.png" class="card-avatar" alt="Twitch Avatar">
+          <img src="img/kao_duija.png" class="card-avatar" alt="" width="56" height="56" loading="lazy">
           <div class="card-info">
             <span class="platform-name">nnzzy</span>
             <span class="platform-sub">อันนี้เอาไว้สตรีมลับ หยาบคาบมากมาย</span>
@@ -214,11 +289,11 @@
         </div>
       </a>
 
-      <a href="https://www.instagram.com/dui_nnzzy" target="_blank" class="banner-card" style="--brand-color: #F56040;">
-        <div class="brand-logo"><img src="img/instagram.png" alt="IG"></div>
+      <a href="https://www.instagram.com/dui_nnzzy" target="_blank" rel="noopener noreferrer" class="banner-card" style="--brand-color: #F56040;">
+        <div class="brand-logo"><img src="img/instagram.png" alt="" width="30" height="30" loading="lazy"></div>
         <div class="card-banner" style="background-image: url('img/nnzzy_banner.jpg');"></div>
         <div class="card-content">
-          <img src="img/kao_duija.png" class="card-avatar" alt="IG Avatar">
+          <img src="img/kao_duija.png" class="card-avatar" alt="" width="56" height="56" loading="lazy">
           <div class="card-info">
             <span class="platform-name">dui_nnzzy</span>
             <span class="platform-sub">แอคนี้เอาไว้ลงคลิปในไอจี ฟอลแอคหลักได้ ฟอลแระบอกดั๊วะ</span>
@@ -226,11 +301,11 @@
         </div>
       </a>
 
-      <a href="https://discord.com/invite/rez4wVEtEP" target="_blank" class="banner-card" style="--brand-color: #5865F2;">
-        <div class="brand-logo"><img src="img/discord.png" alt="Discord"></div>
+      <a href="https://discord.com/invite/rez4wVEtEP" target="_blank" rel="noopener noreferrer" class="banner-card" style="--brand-color: #5865F2;">
+        <div class="brand-logo"><img src="img/discord.png" alt="" width="30" height="30" loading="lazy"></div>
         <div class="card-banner" style="background-image: url('img/nnzzy_banner_discord.png');"></div>
         <div class="card-content">
-          <img src="img/duijuju.jpg" class="card-avatar" alt="Discord Avatar">
+          <img src="img/duijuju.jpg" class="card-avatar" alt="" width="56" height="56" loading="lazy">
           <div class="card-info">
             <span class="platform-name">บ้านบักดุ่ย</span>
             <span class="platform-sub">เอาไว้แจ้งเตือนตอนไลฟ์ แล้วก็เล่นเกมยามเหงา</span>
@@ -238,11 +313,11 @@
         </div>
       </a>
 
-      <a href="https://www.tiktok.com/@nnzzyyyy" target="_blank" class="banner-card" style="--brand-color: var(--tiktok-color);">
-        <div class="brand-logo"><img src="img/tiktok.png" alt="TikTok"></div>
+      <a href="https://www.tiktok.com/@nnzzyyyy" target="_blank" rel="noopener noreferrer" class="banner-card" style="--brand-color: var(--tiktok-color);">
+        <div class="brand-logo"><img src="img/tiktok.png" alt="" width="30" height="30" loading="lazy"></div>
         <div class="card-banner" style="background-image: url('img/nnzzy_banner.jpg');"></div>
         <div class="card-content">
-          <img src="img/kao_duija.png" class="card-avatar" alt="TikTok Avatar">
+          <img src="img/kao_duija.png" class="card-avatar" alt="" width="56" height="56" loading="lazy">
           <div class="card-info">
             <span class="platform-name">ดุ่ย</span>
             <span class="platform-sub">อันนี้แอคหลักเลย ลงคลิปรั่วๆไปเรื่อย</span>
@@ -250,11 +325,11 @@
         </div>
       </a>
 
-      <a href="https://ezdn.app/nnzzyyy" target="_blank" class="banner-card" style="--brand-color: #0052FF;">
-        <div class="brand-logo"><img src="img/easydonate.png" alt="Donate"></div>
+      <a href="https://ezdn.app/nnzzyyy" target="_blank" rel="noopener noreferrer" class="banner-card" style="--brand-color: #0052FF;">
+        <div class="brand-logo"><img src="img/easydonate.png" alt="" width="30" height="30" loading="lazy"></div>
         <div class="card-banner" style="background-image: url('img/promptbid.jpg');"></div>
         <div class="card-content">
-          <img src="img/easydonate.png" class="card-avatar" alt="Donate Avatar">
+          <img src="img/easydonate.png" class="card-avatar" alt="" width="56" height="56" loading="lazy">
           <div class="card-info">
             <span class="platform-name">โดเนท EasyDonate</span>
             <span class="platform-sub">ขอเงินหน่อยคับ จะไปซื้อหนม ขอบคุณคับ💖</span>
@@ -269,28 +344,28 @@
   </div>
 
   <script>
-    const toggleSwitch = document.querySelector('.theme-switch input[type="checkbox"]');
-    
-    const currentTheme = localStorage.getItem('theme');
-    if (currentTheme) {
-      document.documentElement.setAttribute('data-theme', currentTheme);
-      if (currentTheme === 'dark') {
-        toggleSwitch.checked = true;
+    // อ่าน theme ก่อน render เพื่อป้องกัน flash of unstyled content
+    (function() {
+      const saved = localStorage.getItem('theme');
+      if (saved === 'dark') {
         document.body.setAttribute('data-theme', 'dark');
       }
-    }
+    })();
 
-    function switchTheme(e) {
-      if (e.target.checked) {
+    const toggle = document.getElementById('checkbox');
+
+    // sync checkbox กับ theme ที่ save ไว้
+    if (localStorage.getItem('theme') === 'dark') toggle.checked = true;
+
+    toggle.addEventListener('change', function() {
+      if (this.checked) {
         document.body.setAttribute('data-theme', 'dark');
         localStorage.setItem('theme', 'dark');
       } else {
         document.body.removeAttribute('data-theme');
         localStorage.setItem('theme', 'light');
-      }    
-    }
-
-    toggleSwitch.addEventListener('change', switchTheme, false);
+      }
+    });
   </script>
 
 </body>
