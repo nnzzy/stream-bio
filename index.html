@@ -24,29 +24,35 @@
 
 <style>
   :root {
-    --bg-color: #e5e7eb;
-    --grid-color: rgba(0,0,0,0.06);
+    --bg-color: #f1f3f6;
     --card-bg: #ffffff;
-    --text-main: #1c1e21;
+    --text-main: #18191b;
     --text-sub: #65676b;
-    --border-color: #dadde1;
-    --hover-bg: #f0f2f5;
+    --border-color: #e2e4e8;
+    --hover-bg: #f8f9fa;
     --btn-bg: #e4e6eb;
-    --switch-bg: #ccc;
+    --switch-bg: #cbd5e1;
     --tiktok-color: #000000;
+    --glow-color: rgba(99, 102, 241, 0.12);
+    --card-shadow: rgba(0, 0, 0, 0.06);
+    --card-hover-shadow: rgba(0, 0, 0, 0.08);
+    --banner-overlay: linear-gradient(180deg, rgba(0,0,0,0.02) 0%, rgba(0,0,0,0.3) 100%);
   }
 
   [data-theme="dark"] {
     --bg-color: #09090b;
-    --grid-color: rgba(255,255,255,0.05);
-    --card-bg: #1c1c1f;
-    --text-main: #e4e6eb;
-    --text-sub: #b0b3b8;
-    --border-color: #3a3b3c;
-    --hover-bg: #2a2b2e;
-    --btn-bg: #3a3b3c;
-    --switch-bg: #43b581;
+    --card-bg: #141417;
+    --text-main: #f3f4f6;
+    --text-sub: #9ca3af;
+    --border-color: #27272a;
+    --hover-bg: #1a1a1f;
+    --btn-bg: #27272a;
+    --switch-bg: #3b82f6;
     --tiktok-color: #ffffff;
+    --glow-color: rgba(139, 92, 246, 0.16);
+    --card-shadow: rgba(0, 0, 0, 0.45);
+    --card-hover-shadow: rgba(0, 0, 0, 0.35);
+    --banner-overlay: linear-gradient(180deg, rgba(0,0,0,0.05) 0%, rgba(0,0,0,0.55) 100%);
   }
 
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -61,10 +67,26 @@
     min-height: 100vh;
     padding: 60px 16px;
     -webkit-font-smoothing: antialiased;
+    position: relative;
+    overflow-x: hidden;
+  }
+
+  /* --- Ambient background glow (GPU-rendered, zero repaint lag) --- */
+  .bg-glow {
+    position: fixed;
+    top: -120px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 580px;
+    max-width: 100vw;
+    height: 480px;
+    background: radial-gradient(circle, var(--glow-color) 0%, transparent 68%);
+    pointer-events: none;
+    z-index: 0;
   }
 
   .theme-switch-wrapper {
-    position: fixed; /* fixed แทน absolute เพื่อไม่ให้ reflow ตอน scroll */
+    position: fixed;
     top: 16px;
     right: 16px;
     z-index: 100;
@@ -87,88 +109,171 @@
     border-radius: 34px;
     display: flex; align-items: center; justify-content: space-between;
     padding: 0 8px;
-    box-shadow: inset 0 2px 4px rgba(0,0,0,0.1);
+    box-shadow: inset 0 2px 4px rgba(0,0,0,0.1), 0 2px 8px rgba(0,0,0,0.06);
+    border: 1px solid rgba(255,255,255,0.08);
   }
   .slider:before {
     background-color: #fff;
     bottom: 4px; content: "";
     height: 26px; left: 4px;
     position: absolute;
-    /* ใช้ translate3d เพื่อเร่งความเร็วด้วย GPU บนมือถือ */
-    transition: transform 0.25s cubic-bezier(0.4, 0.0, 0.2, 1);
+    /* Spring bounce บน GPU */
+    transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
     transform: translate3d(0, 0, 0);
     width: 26px; border-radius: 50%; z-index: 2;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+    box-shadow: 0 2px 5px rgba(0,0,0,0.22);
     will-change: transform;
   }
   input:checked + .slider:before { transform: translate3d(32px, 0, 0); }
   .slider-icon { font-size: 14px; z-index: 1; user-select: none; }
 
+  /* --- Main Card --- */
   .main-card {
+    position: relative;
+    z-index: 1;
     background-color: var(--card-bg);
     border: 1px solid var(--border-color);
-    border-radius: 24px;
+    border-radius: 28px;
     width: 100%;
     max-width: 440px;
     padding: 36px 20px;
     display: flex;
     flex-direction: column;
     align-items: center;
-    /* ป้องกัน overflow บนหน้าจอเล็ก */
     overflow: hidden;
+    box-shadow: 0 16px 40px -10px var(--card-shadow);
   }
 
+  /* --- Profile Avatar & Status Badge --- */
+  .profile-wrapper {
+    position: relative;
+    margin-bottom: 12px;
+    display: inline-block;
+  }
   .profile-pic {
     width: 90px; height: 90px;
     border-radius: 50%; object-fit: cover;
-    border: 3px solid var(--border-color);
-    margin: 0 auto 10px; display: block;
+    border: 3px solid var(--card-bg);
+    box-shadow: 0 0 0 2px var(--border-color), 0 4px 12px rgba(0,0,0,0.08);
+    display: block;
+    transition: transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+  }
+  .profile-wrapper:hover .profile-pic {
+    transform: scale(1.05);
+  }
+  .status-badge {
+    position: absolute;
+    bottom: 3px;
+    right: 5px;
+    width: 20px;
+    height: 20px;
+    background-color: var(--card-bg);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.15);
+  }
+  .status-dot {
+    width: 10px;
+    height: 10px;
+    background-color: #22c55e;
+    border-radius: 50%;
+    animation: pulseDot 2.2s infinite ease-in-out;
+  }
+  @keyframes pulseDot {
+    0%, 100% { transform: scale(1); opacity: 1; }
+    50% { transform: scale(0.8); opacity: 0.65; }
   }
 
-  .channel-name { font-size: 22px; font-weight: 600; margin-bottom: 2px; text-align: center; }
-  .channel-handle { font-size: 13px; color: var(--text-sub); text-align: center; margin-bottom: 4px; }
-  .channel-handle:last-of-type { margin-bottom: 28px; }
+  /* --- Channel Headers --- */
+  .channel-name {
+    font-size: 22px;
+    font-weight: 600;
+    margin-bottom: 2px;
+    text-align: center;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+  }
+  .verified-badge {
+    display: inline-block;
+    flex-shrink: 0;
+  }
+  .channel-handle {
+    font-size: 13px;
+    color: var(--text-sub);
+    text-align: center;
+    margin-bottom: 6px;
+  }
+  .channel-bio {
+    font-size: 13px;
+    color: var(--text-sub);
+    text-align: center;
+    line-height: 1.55;
+    margin-bottom: 28px;
+    padding: 0 4px;
+  }
 
   .links-list {
     display: flex; flex-direction: column; gap: 14px; width: 100%; margin-bottom: 28px;
   }
 
+  /* --- Banner Cards with Micro-interactions --- */
   .banner-card {
     position: relative;
-    border: 2px solid var(--brand-color, #ccc);
-    border-radius: 14px;
+    border: 1.5px solid var(--border-color);
+    border-radius: 16px;
     background-color: var(--hover-bg);
     overflow: hidden;
     text-decoration: none;
     color: var(--text-main);
     display: flex;
     flex-direction: column;
-    transition: transform 0.18s ease;
+    transition: transform 0.22s cubic-bezier(0.2, 0.9, 0.3, 1), border-color 0.2s ease, box-shadow 0.2s ease;
     touch-action: manipulation;
     -webkit-tap-highlight-color: transparent;
   }
-  .banner-card:hover  { transform: translateY(-3px); }
-  .banner-card:active { transform: scale(0.985); }
+  .banner-card:hover {
+    transform: translateY(-3px);
+    border-color: var(--brand-color, var(--border-color));
+    box-shadow: 0 6px 20px -4px var(--card-hover-shadow);
+  }
+  .banner-card:active {
+    transform: scale(0.985);
+  }
 
   .brand-logo {
     position: absolute; top: 10px; left: 10px;
-    width: 30px; height: 30px;
+    width: 32px; height: 32px;
     background: #fff; border-radius: 50%;
     display: flex; align-items: center; justify-content: center;
     z-index: 10; overflow: hidden;
-    border: 1px solid rgba(0,0,0,0.1);
-    box-shadow: 0 1px 4px rgba(0,0,0,0.15);
+    border: 1.5px solid rgba(255,255,255,0.85);
+    box-shadow: 0 2px 8px rgba(0,0,0,0.18);
+    transition: transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+  }
+  .banner-card:hover .brand-logo {
+    transform: scale(1.08);
   }
   .brand-logo img { width: 100%; height: 100%; object-fit: cover; }
 
   .card-banner {
-    height: 72px; /* ลดสูงนิดนึง ให้รูปโหลดเร็วขึ้น */
+    height: 72px;
     background-size: cover;
     background-position: center;
     background-color: var(--hover-bg);
     border-bottom: 1px solid var(--border-color);
-    /* ป้องกัน layout shift ตอนรูปโหลด */
+    position: relative;
     contain: strict;
+  }
+  .card-banner::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: var(--banner-overlay);
+    pointer-events: none;
   }
 
   .card-content {
@@ -177,7 +282,7 @@
     position: relative;
     display: flex;
     align-items: center;
-    padding: 8px 14px 8px 86px;
+    padding: 8px 36px 8px 84px;
   }
 
   .card-avatar {
@@ -188,17 +293,20 @@
     object-fit: cover;
     background-color: var(--card-bg);
     z-index: 5;
+    transition: transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+  }
+  .banner-card:hover .card-avatar {
+    transform: scale(1.06);
   }
 
   .card-info {
     background-color: var(--card-bg);
-    padding: 5px 12px;
-    border-radius: 14px;
-    border-top-left-radius: 3px;
+    padding: 6px 12px;
+    border-radius: 12px;
+    border-top-left-radius: 4px;
     display: flex; flex-direction: column; justify-content: center;
     width: 100%;
     border: 1px solid var(--border-color);
-    /* ป้องกัน text overflow บนหน้าจอแคบ */
     min-width: 0;
   }
 
@@ -213,26 +321,127 @@
     margin-top: 2px;
   }
 
+  /* Sleek External Arrow Icon */
+  .card-arrow {
+    position: absolute;
+    right: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--text-sub);
+    opacity: 0.45;
+    transition: transform 0.2s ease, opacity 0.2s ease, color 0.2s ease;
+    pointer-events: none;
+    flex-shrink: 0;
+  }
+  .banner-card:hover .card-arrow {
+    transform: translateY(-50%) translate(2px, -2px);
+    opacity: 1;
+    color: var(--brand-color, var(--text-main));
+  }
+
+  /* --- Bottom Action Button & Mascot GIF --- */
+  .bottom-wrapper {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    width: 100%;
+  }
+
   .bottom-bar {
-    display: block; width: 100%;
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
     background-color: var(--btn-bg);
     color: var(--text-main);
-    padding: 13px; border-radius: 50px;
-    text-decoration: none; font-weight: 500; font-size: 14px;
+    padding: 13px 16px;
+    border-radius: 50px;
+    text-decoration: none;
+    font-weight: 500;
+    font-size: 13.5px;
     text-align: center;
-    transition: filter 0.15s ease;
+    transition: transform 0.15s ease, filter 0.15s ease;
     touch-action: manipulation;
     -webkit-tap-highlight-color: transparent;
     cursor: pointer;
+    border: 1px solid var(--border-color);
   }
-  .bottom-bar:hover  { filter: brightness(0.92); }
-  .bottom-bar:active { filter: brightness(0.85); }
+  .bottom-bar:hover {
+    filter: brightness(0.93);
+    transform: translateY(-1px);
+  }
+  .bottom-bar:active {
+    transform: scale(0.98);
+  }
+  .bottom-icon {
+    display: inline-block;
+    font-size: 15px;
+    font-weight: 600;
+    animation: bounceUp 1.8s infinite ease-in-out;
+  }
+  @keyframes bounceUp {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-3px); }
+  }
+
+  .bottom-gif {
+    width: 52px;
+    height: 52px;
+    object-fit: contain;
+    flex-shrink: 0;
+    cursor: pointer;
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
+    transition: transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+    filter: drop-shadow(0 2px 6px rgba(0,0,0,0.12));
+    user-select: none;
+  }
+  .bottom-gif:hover {
+    transform: scale(1.18) rotate(-6deg);
+  }
+  .bottom-gif:active {
+    transform: scale(0.92);
+  }
+
+  /* --- Staggered Entrance Animations (100% GPU Composited) --- */
+  @keyframes fadeInUp {
+    from {
+      opacity: 0;
+      transform: translate3d(0, 16px, 0);
+    }
+    to {
+      opacity: 1;
+      transform: translate3d(0, 0, 0);
+    }
+  }
+
+  .animate-fade-in {
+    animation: fadeInUp 0.45s cubic-bezier(0.16, 1, 0.3, 1) both;
+  }
+
+  .delay-1  { animation-delay: 0.04s; }
+  .delay-2  { animation-delay: 0.08s; }
+  .delay-3  { animation-delay: 0.12s; }
+  .delay-4  { animation-delay: 0.16s; }
+  .delay-5  { animation-delay: 0.20s; }
+  .delay-6  { animation-delay: 0.24s; }
+  .delay-7  { animation-delay: 0.28s; }
+  .delay-8  { animation-delay: 0.32s; }
+  .delay-9  { animation-delay: 0.36s; }
+  .delay-10 { animation-delay: 0.40s; }
+  .delay-11 { animation-delay: 0.44s; }
+  .delay-12 { animation-delay: 0.48s; }
 
   /* --- responsive: จอเล็กกว่า 360px --- */
   @media (max-width: 360px) {
     body { padding: 50px 10px; }
-    .main-card { padding: 28px 14px; border-radius: 18px; }
+    .main-card { padding: 28px 14px; border-radius: 20px; }
     .card-banner { height: 60px; }
+    .bottom-bar { font-size: 12px; padding: 11px 10px; }
+    .bottom-gif { width: 44px; height: 44px; }
   }
 
   /* --- ลด animation สำหรับคนที่ตั้ง reduce-motion --- */
@@ -240,11 +449,15 @@
     *, *::before, *::after {
       transition-duration: 0.01ms !important;
       animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
     }
   }
 </style>
 </head>
 <body>
+
+  <!-- Ambient background glow (GPU-rendered, zero repaint lag) -->
+  <div class="bg-glow" aria-hidden="true"></div>
 
   <div class="theme-switch-wrapper">
     <label class="theme-switch" for="checkbox" aria-label="สลับโหมดสว่าง/มืด">
@@ -258,15 +471,24 @@
 
   <div class="main-card">
 
-    <img src="img/kao_duija.png" alt="รูปช่อง" class="profile-pic" width="90" height="90">
-    <h1 class="channel-name">ดุ่ย</h1>
-    <p class="channel-handle">@nnzzy</p>
-    <p class="channel-handle">สวัสดีครับ ดุ่ยเองครับ เว็บนี้เขียนไว้เพื่อรวบรวมช่องทาง Social Media ของผมเองครับ ถ้ามีอันไหนเพิ่มมาใหม่ก็จะอัพเดทเรื่อยๆ ถ้าพี่อ่านมาถึงตรงนี้แปลว่าพี่ก็เริ่มถูกใจผมแล้วแหละ อิอิ</p>
+    <div class="profile-wrapper animate-fade-in">
+      <img src="img/kao_duija.png" alt="ดุ่ย nnzzy" class="profile-pic" width="90" height="90">
+      <span class="status-badge" title="พร้อมสตรีม"><span class="status-dot"></span></span>
+    </div>
+
+    <h1 class="channel-name animate-fade-in delay-1">
+      ดุ่ย
+      <svg class="verified-badge" viewBox="0 0 24 24" width="20" height="20" fill="none" aria-label="ยืนยันแล้ว">
+        <path fill-rule="evenodd" clip-rule="evenodd" d="M12 2C6.477 2 2 6.477 2 12c0 5.523 4.477 10 10 10s10-4.477 10-10c0-5.523-4.477-10-10-10zm4.293 7.707a1 1 0 00-1.414-1.414L10.5 12.672 9.121 11.293a1 1 0 00-1.414 1.414l2.086 2.086a1 1 0 001.414 0l5.086-5.086z" fill="#0ea5e9"/>
+      </svg>
+    </h1>
+    <p class="channel-handle animate-fade-in delay-2">@nnzzy</p>
+    <p class="channel-bio animate-fade-in delay-3">สวัสดีครับ ดุ่ยเองครับ เว็บนี้เขียนไว้เพื่อรวบรวมช่องทาง Social Media ของผมเองครับ ถ้ามีอันไหนเพิ่มมาใหม่ก็จะอัพเดทเรื่อยๆ ถ้าพี่อ่านมาถึงตรงนี้แปลว่าพี่ก็เริ่มถูกใจผมแล้วแหละ อิอิ</p>
 
     <div class="links-list">
 
-      <a href="https://www.youtube.com/@nnzzy" target="_blank" rel="noopener noreferrer" class="banner-card" style="--brand-color: #FF0000;">
-        <div class="brand-logo"><img src="img/youtube.png" alt="" width="30" height="30" loading="lazy"></div>
+      <a href="https://www.youtube.com/@nnzzy" target="_blank" rel="noopener noreferrer" class="banner-card animate-fade-in delay-4" style="--brand-color: #FF0000;">
+        <div class="brand-logo"><img src="img/youtube.png" alt="" width="32" height="32" loading="lazy"></div>
         <div class="card-banner" style="background-image: url('img/nnzzy_banner.jpg');"></div>
         <div class="card-content">
           <img src="img/kao_duija.png" class="card-avatar" alt="" width="56" height="56" loading="lazy">
@@ -274,11 +496,12 @@
             <span class="platform-name">NNZZY</span>
             <span class="platform-sub">ช่องยูทูปมีไว้ก่อนไม่รู้เอาไว้ทำไร อนาคตไม่แน่นอน</span>
           </div>
+          <svg class="card-arrow" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="7" y1="17" x2="17" y2="7"></line><polyline points="7 7 17 7 17 17"></polyline></svg>
         </div>
       </a>
 
-      <a href="https://www.twitch.tv/nnzzy" target="_blank" rel="noopener noreferrer" class="banner-card" style="--brand-color: #9146FF;">
-        <div class="brand-logo"><img src="img/twitch.png" alt="" width="30" height="30" loading="lazy"></div>
+      <a href="https://www.twitch.tv/nnzzy" target="_blank" rel="noopener noreferrer" class="banner-card animate-fade-in delay-5" style="--brand-color: #9146FF;">
+        <div class="brand-logo"><img src="img/twitch.png" alt="" width="32" height="32" loading="lazy"></div>
         <div class="card-banner" style="background-image: url('img/nnzzy_banner.jpg');"></div>
         <div class="card-content">
           <img src="img/kao_duija.png" class="card-avatar" alt="" width="56" height="56" loading="lazy">
@@ -286,11 +509,12 @@
             <span class="platform-name">nnzzy</span>
             <span class="platform-sub">อันนี้เอาไว้สตรีมลับ หยาบคาบมากมาย</span>
           </div>
+          <svg class="card-arrow" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="7" y1="17" x2="17" y2="7"></line><polyline points="7 7 17 7 17 17"></polyline></svg>
         </div>
       </a>
 
-      <a href="https://www.instagram.com/dui_nnzzy" target="_blank" rel="noopener noreferrer" class="banner-card" style="--brand-color: #F56040;">
-        <div class="brand-logo"><img src="img/instagram.png" alt="" width="30" height="30" loading="lazy"></div>
+      <a href="https://www.instagram.com/dui_nnzzy" target="_blank" rel="noopener noreferrer" class="banner-card animate-fade-in delay-6" style="--brand-color: #F56040;">
+        <div class="brand-logo"><img src="img/instagram.png" alt="" width="32" height="32" loading="lazy"></div>
         <div class="card-banner" style="background-image: url('img/nnzzy_banner.jpg');"></div>
         <div class="card-content">
           <img src="img/kao_duija.png" class="card-avatar" alt="" width="56" height="56" loading="lazy">
@@ -298,11 +522,12 @@
             <span class="platform-name">dui_nnzzy</span>
             <span class="platform-sub">แอคนี้เอาไว้ลงคลิปในไอจี ฟอลแอคหลักได้ ฟอลแระบอกดั๊วะ</span>
           </div>
+          <svg class="card-arrow" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="7" y1="17" x2="17" y2="7"></line><polyline points="7 7 17 7 17 17"></polyline></svg>
         </div>
       </a>
 
-      <a href="https://discord.com/invite/rez4wVEtEP" target="_blank" rel="noopener noreferrer" class="banner-card" style="--brand-color: #5865F2;">
-        <div class="brand-logo"><img src="img/discord.png" alt="" width="30" height="30" loading="lazy"></div>
+      <a href="https://discord.com/invite/rez4wVEtEP" target="_blank" rel="noopener noreferrer" class="banner-card animate-fade-in delay-7" style="--brand-color: #5865F2;">
+        <div class="brand-logo"><img src="img/discord.png" alt="" width="32" height="32" loading="lazy"></div>
         <div class="card-banner" style="background-image: url('img/nnzzy_banner_discord.png');"></div>
         <div class="card-content">
           <img src="img/duijuju.jpg" class="card-avatar" alt="" width="56" height="56" loading="lazy">
@@ -310,11 +535,12 @@
             <span class="platform-name">บ้านบักดุ่ย</span>
             <span class="platform-sub">เอาไว้แจ้งเตือนตอนไลฟ์ แล้วก็เล่นเกมยามเหงา</span>
           </div>
+          <svg class="card-arrow" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="7" y1="17" x2="17" y2="7"></line><polyline points="7 7 17 7 17 17"></polyline></svg>
         </div>
       </a>
 
-      <a href="https://www.tiktok.com/@nnzzyyyy" target="_blank" rel="noopener noreferrer" class="banner-card" style="--brand-color: var(--tiktok-color);">
-        <div class="brand-logo"><img src="img/tiktok.png" alt="" width="30" height="30" loading="lazy"></div>
+      <a href="https://www.tiktok.com/@nnzzyyyy" target="_blank" rel="noopener noreferrer" class="banner-card animate-fade-in delay-8" style="--brand-color: var(--tiktok-color);">
+        <div class="brand-logo"><img src="img/tiktok.png" alt="" width="32" height="32" loading="lazy"></div>
         <div class="card-banner" style="background-image: url('img/nnzzy_banner.jpg');"></div>
         <div class="card-content">
           <img src="img/kao_duija.png" class="card-avatar" alt="" width="56" height="56" loading="lazy">
@@ -322,11 +548,12 @@
             <span class="platform-name">ดุ่ย</span>
             <span class="platform-sub">อันนี้แอคหลักเลย ลงคลิปรั่วๆไปเรื่อย</span>
           </div>
+          <svg class="card-arrow" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="7" y1="17" x2="17" y2="7"></line><polyline points="7 7 17 7 17 17"></polyline></svg>
         </div>
       </a>
 
-      <a href="https://kick.com/nnzzy/about" target="_blank" rel="noopener noreferrer" class="banner-card" style="--brand-color: #53FC18;">
-        <div class="brand-logo"><img src="img/kicklogo.png" alt="" width="30" height="30" loading="lazy"></div>
+      <a href="https://kick.com/nnzzy/about" target="_blank" rel="noopener noreferrer" class="banner-card animate-fade-in delay-9" style="--brand-color: #53FC18;">
+        <div class="brand-logo"><img src="img/kicklogo.png" alt="" width="32" height="32" loading="lazy"></div>
         <div class="card-banner" style="background-image: url('img/duibannerkick.jpg');"></div>
         <div class="card-content">
           <img src="img/kao_duija.png" class="card-avatar" alt="" width="56" height="56" loading="lazy">
@@ -334,11 +561,12 @@
             <span class="platform-name">nnzzy</span>
             <span class="platform-sub">อันนี้ร่างเถื่อนเลย ใน Kick จะทำไรก็ได้ สตรีมแบบบ้านป่าเมืองเถื่อน</span>
           </div>
+          <svg class="card-arrow" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="7" y1="17" x2="17" y2="7"></line><polyline points="7 7 17 7 17 17"></polyline></svg>
         </div>
       </a>
 
-      <a href="https://linkdonate.com/duinnzzy" target="_blank" rel="noopener noreferrer" class="banner-card" style="--brand-color: #0052FF;">
-        <div class="brand-logo"><img src="img/kao_duija.png" alt="" width="30" height="30" loading="lazy"></div>
+      <a href="https://linkdonate.com/duinnzzy" target="_blank" rel="noopener noreferrer" class="banner-card animate-fade-in delay-10" style="--brand-color: #0052FF;">
+        <div class="brand-logo"><img src="img/kao_duija.png" alt="" width="32" height="32" loading="lazy"></div>
         <div class="card-banner" style="background-image: url('img/promptbid.jpg');"></div>
         <div class="card-content">
           <img src="img/kao_duija.png" class="card-avatar" alt="" width="56" height="56" loading="lazy">
@@ -346,11 +574,12 @@
             <span class="platform-name">โดเนท LinkDonate</span>
             <span class="platform-sub">ขอเงินหน่อยคับ จะไปซื้อหนม ขอบคุณคับ💖</span>
           </div>
+          <svg class="card-arrow" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="7" y1="17" x2="17" y2="7"></line><polyline points="7 7 17 7 17 17"></polyline></svg>
         </div>
       </a>
 
-      <a href="mailto:duinnzzycontact@gmail.com" class="banner-card" style="--brand-color: #b48400;">
-        <div class="brand-logo"><img src="img/gmail.png" alt="" width="30" height="30" loading="lazy"></div>
+      <a href="mailto:duinnzzycontact@gmail.com" class="banner-card animate-fade-in delay-11" style="--brand-color: #b48400;">
+        <div class="brand-logo"><img src="img/gmail.png" alt="" width="32" height="32" loading="lazy"></div>
         <div class="card-banner" style="background-image: url('img/nnzzy_banner_gmail.png');"></div>
         <div class="card-content">
           <img src="img/gmail.png" class="card-avatar" alt="" width="56" height="56" loading="lazy">
@@ -358,12 +587,19 @@
             <span class="platform-name">Email</span>
             <span class="platform-sub">for work only: duinnzzycontact@gmail.com</span>
           </div>
+          <svg class="card-arrow" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="7" y1="17" x2="17" y2="7"></line><polyline points="7 7 17 7 17 17"></polyline></svg>
         </div>
       </a>
 
     </div>
 
-    <a href="#" class="bottom-bar" onclick="window.scrollTo({top: 0, behavior: 'smooth'}); return false;">เลื่อนลงมาทำไมครับ เลื่อนกลับขึ้นไปเดี๋ยวนี้</a>
+    <div class="bottom-wrapper animate-fade-in delay-12">
+      <a href="#" class="bottom-bar" onclick="window.scrollTo({top: 0, behavior: 'smooth'}); return false;">
+        <span class="bottom-icon" aria-hidden="true">↑</span>
+        <span>เลื่อนลงมาทำไมครับ เลื่อนกลับขึ้นไปเดี๋ยวนี้</span>
+      </a>
+      <img src="img/DUI_OG_FULL_LICK.gif" alt="ดุ่ยเลียจอ" class="bottom-gif" width="52" height="52" loading="lazy" onclick="window.scrollTo({top: 0, behavior: 'smooth'});" title="เลียจอแล้ว เลื่อนกลับขึ้นไปเลย!">
+    </div>
 
   </div>
 
