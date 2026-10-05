@@ -71,9 +71,9 @@
     overflow-x: hidden;
   }
 
-  /* --- Ambient background glow (GPU-rendered, zero repaint lag) --- */
+  /* --- Ambient background glow (absolute layer, no scroll jank) --- */
   .bg-glow {
-    position: fixed;
+    position: absolute;
     top: -120px;
     left: 50%;
     transform: translateX(-50%);
@@ -142,6 +142,7 @@
     align-items: center;
     overflow: hidden;
     box-shadow: 0 16px 40px -10px var(--card-shadow);
+    animation: cardEntrance 0.35s cubic-bezier(0.16, 1, 0.3, 1) both;
   }
 
   /* --- Profile Avatar & Status Badge --- */
@@ -266,7 +267,6 @@
     background-color: var(--hover-bg);
     border-bottom: 1px solid var(--border-color);
     position: relative;
-    contain: strict;
   }
   .card-banner::after {
     content: '';
@@ -434,34 +434,17 @@
     opacity: 1;
   }
 
-  /* --- Staggered Entrance Animations (100% GPU Composited) --- */
-  @keyframes fadeInUp {
+  /* --- Clean Entrance Animation (GPU Composited) --- */
+  @keyframes cardEntrance {
     from {
       opacity: 0;
-      transform: translate3d(0, 16px, 0);
+      transform: translate3d(0, 12px, 0);
     }
     to {
       opacity: 1;
       transform: translate3d(0, 0, 0);
     }
   }
-
-  .animate-fade-in {
-    animation: fadeInUp 0.45s cubic-bezier(0.16, 1, 0.3, 1) both;
-  }
-
-  .delay-1  { animation-delay: 0.04s; }
-  .delay-2  { animation-delay: 0.08s; }
-  .delay-3  { animation-delay: 0.12s; }
-  .delay-4  { animation-delay: 0.16s; }
-  .delay-5  { animation-delay: 0.20s; }
-  .delay-6  { animation-delay: 0.24s; }
-  .delay-7  { animation-delay: 0.28s; }
-  .delay-8  { animation-delay: 0.32s; }
-  .delay-9  { animation-delay: 0.36s; }
-  .delay-10 { animation-delay: 0.40s; }
-  .delay-11 { animation-delay: 0.44s; }
-  .delay-12 { animation-delay: 0.48s; }
 
   /* --- responsive: จอเล็กกว่า 360px --- */
   @media (max-width: 360px) {
@@ -499,27 +482,27 @@
 
   <div class="main-card">
 
-    <div class="profile-wrapper animate-fade-in">
-      <img src="img/kao_duija.png" alt="ดุ่ย nnzzy" class="profile-pic" width="90" height="90">
+    <div class="profile-wrapper">
+      <img src="img/kao_duija.png" alt="ดุ่ย nnzzy" class="profile-pic" width="90" height="90" fetchpriority="high" decoding="async">
       <span class="status-badge" title="พร้อมสตรีม"><span class="status-dot"></span></span>
     </div>
 
-    <h1 class="channel-name animate-fade-in delay-1">
+    <h1 class="channel-name">
       ดุ่ย
       <svg class="verified-badge" viewBox="0 0 24 24" width="20" height="20" fill="none" aria-label="ยืนยันแล้ว">
         <path fill-rule="evenodd" clip-rule="evenodd" d="M12 2C6.477 2 2 6.477 2 12c0 5.523 4.477 10 10 10s10-4.477 10-10c0-5.523-4.477-10-10-10zm4.293 7.707a1 1 0 00-1.414-1.414L10.5 12.672 9.121 11.293a1 1 0 00-1.414 1.414l2.086 2.086a1 1 0 001.414 0l5.086-5.086z" fill="#0ea5e9"/>
       </svg>
     </h1>
-    <p class="channel-handle animate-fade-in delay-2">@nnzzy</p>
-    <p class="channel-bio animate-fade-in delay-3">สวัสดีครับ ดุ่ยเองครับ เว็บนี้เขียนไว้เพื่อรวบรวมช่องทาง Social Media ของผมเองครับ ถ้ามีอันไหนเพิ่มมาใหม่ก็จะอัพเดทเรื่อยๆ ถ้าพี่อ่านมาถึงตรงนี้แปลว่าพี่ก็เริ่มถูกใจผมแล้วแหละ อิอิ</p>
+    <p class="channel-handle">@nnzzy</p>
+    <p class="channel-bio">สวัสดีครับ ดุ่ยเองครับ เว็บนี้เขียนไว้เพื่อรวบรวมช่องทาง Social Media ของผมเองครับ ถ้ามีอันไหนเพิ่มมาใหม่ก็จะอัพเดทเรื่อยๆ ถ้าพี่อ่านมาถึงตรงนี้แปลว่าพี่ก็เริ่มถูกใจผมแล้วแหละ อิอิ</p>
 
     <div class="links-list">
 
-      <a href="https://www.youtube.com/@nnzzy" target="_blank" rel="noopener noreferrer" class="banner-card animate-fade-in delay-4" style="--brand-color: #FF0000;">
-        <div class="brand-logo"><img src="img/youtube.png" alt="" width="32" height="32" loading="lazy"></div>
+      <a href="https://www.youtube.com/@nnzzy" target="_blank" rel="noopener noreferrer" class="banner-card" style="--brand-color: #FF0000;">
+        <div class="brand-logo"><img src="img/youtube.png" alt="" width="32" height="32" loading="lazy" decoding="async"></div>
         <div class="card-banner" style="background-image: url('img/nnzzy_banner.jpg');"></div>
         <div class="card-content">
-          <img src="img/kao_duija.png" class="card-avatar" alt="" width="56" height="56" loading="lazy">
+          <img src="img/kao_duija.png" class="card-avatar" alt="" width="56" height="56" loading="lazy" decoding="async">
           <div class="card-info">
             <span class="platform-name">NNZZY</span>
             <span class="platform-sub">ช่องยูทูปมีไว้ก่อนไม่รู้เอาไว้ทำไร อนาคตไม่แน่นอน</span>
@@ -528,11 +511,11 @@
         </div>
       </a>
 
-      <a href="https://www.twitch.tv/nnzzy" target="_blank" rel="noopener noreferrer" class="banner-card animate-fade-in delay-5" style="--brand-color: #9146FF;">
-        <div class="brand-logo"><img src="img/twitch.png" alt="" width="32" height="32" loading="lazy"></div>
+      <a href="https://www.twitch.tv/nnzzy" target="_blank" rel="noopener noreferrer" class="banner-card" style="--brand-color: #9146FF;">
+        <div class="brand-logo"><img src="img/twitch.png" alt="" width="32" height="32" loading="lazy" decoding="async"></div>
         <div class="card-banner" style="background-image: url('img/nnzzy_banner.jpg');"></div>
         <div class="card-content">
-          <img src="img/kao_duija.png" class="card-avatar" alt="" width="56" height="56" loading="lazy">
+          <img src="img/kao_duija.png" class="card-avatar" alt="" width="56" height="56" loading="lazy" decoding="async">
           <div class="card-info">
             <span class="platform-name">nnzzy</span>
             <span class="platform-sub">อันนี้เอาไว้สตรีมลับ หยาบคาบมากมาย</span>
@@ -541,11 +524,11 @@
         </div>
       </a>
 
-      <a href="https://www.instagram.com/dui_nnzzy" target="_blank" rel="noopener noreferrer" class="banner-card animate-fade-in delay-6" style="--brand-color: #F56040;">
-        <div class="brand-logo"><img src="img/instagram.png" alt="" width="32" height="32" loading="lazy"></div>
+      <a href="https://www.instagram.com/dui_nnzzy" target="_blank" rel="noopener noreferrer" class="banner-card" style="--brand-color: #F56040;">
+        <div class="brand-logo"><img src="img/instagram.png" alt="" width="32" height="32" loading="lazy" decoding="async"></div>
         <div class="card-banner" style="background-image: url('img/nnzzy_banner.jpg');"></div>
         <div class="card-content">
-          <img src="img/kao_duija.png" class="card-avatar" alt="" width="56" height="56" loading="lazy">
+          <img src="img/kao_duija.png" class="card-avatar" alt="" width="56" height="56" loading="lazy" decoding="async">
           <div class="card-info">
             <span class="platform-name">dui_nnzzy</span>
             <span class="platform-sub">แอคนี้เอาไว้ลงคลิปในไอจี ฟอลแอคหลักได้ ฟอลแระบอกดั๊วะ</span>
@@ -554,11 +537,11 @@
         </div>
       </a>
 
-      <a href="https://discord.com/invite/rez4wVEtEP" target="_blank" rel="noopener noreferrer" class="banner-card animate-fade-in delay-7" style="--brand-color: #5865F2;">
-        <div class="brand-logo"><img src="img/discord.png" alt="" width="32" height="32" loading="lazy"></div>
+      <a href="https://discord.com/invite/rez4wVEtEP" target="_blank" rel="noopener noreferrer" class="banner-card" style="--brand-color: #5865F2;">
+        <div class="brand-logo"><img src="img/discord.png" alt="" width="32" height="32" loading="lazy" decoding="async"></div>
         <div class="card-banner" style="background-image: url('img/nnzzy_banner_discord.png');"></div>
         <div class="card-content">
-          <img src="img/duijuju.jpg" class="card-avatar" alt="" width="56" height="56" loading="lazy">
+          <img src="img/duijuju.jpg" class="card-avatar" alt="" width="56" height="56" loading="lazy" decoding="async">
           <div class="card-info">
             <span class="platform-name">บ้านบักดุ่ย</span>
             <span class="platform-sub">เอาไว้แจ้งเตือนตอนไลฟ์ แล้วก็เล่นเกมยามเหงา</span>
@@ -567,11 +550,11 @@
         </div>
       </a>
 
-      <a href="https://www.tiktok.com/@nnzzyyyy" target="_blank" rel="noopener noreferrer" class="banner-card animate-fade-in delay-8" style="--brand-color: var(--tiktok-color);">
-        <div class="brand-logo"><img src="img/tiktok.png" alt="" width="32" height="32" loading="lazy"></div>
+      <a href="https://www.tiktok.com/@nnzzyyyy" target="_blank" rel="noopener noreferrer" class="banner-card" style="--brand-color: var(--tiktok-color);">
+        <div class="brand-logo"><img src="img/tiktok.png" alt="" width="32" height="32" loading="lazy" decoding="async"></div>
         <div class="card-banner" style="background-image: url('img/nnzzy_banner.jpg');"></div>
         <div class="card-content">
-          <img src="img/kao_duija.png" class="card-avatar" alt="" width="56" height="56" loading="lazy">
+          <img src="img/kao_duija.png" class="card-avatar" alt="" width="56" height="56" loading="lazy" decoding="async">
           <div class="card-info">
             <span class="platform-name">ดุ่ย</span>
             <span class="platform-sub">อันนี้แอคหลักเลย ลงคลิปรั่วๆไปเรื่อย</span>
@@ -580,11 +563,11 @@
         </div>
       </a>
 
-      <a href="https://kick.com/nnzzy/about" target="_blank" rel="noopener noreferrer" class="banner-card animate-fade-in delay-9" style="--brand-color: #53FC18;">
-        <div class="brand-logo"><img src="img/kicklogo.png" alt="" width="32" height="32" loading="lazy"></div>
+      <a href="https://kick.com/nnzzy/about" target="_blank" rel="noopener noreferrer" class="banner-card" style="--brand-color: #53FC18;">
+        <div class="brand-logo"><img src="img/kicklogo.png" alt="" width="32" height="32" loading="lazy" decoding="async"></div>
         <div class="card-banner" style="background-image: url('img/duibannerkick.jpg');"></div>
         <div class="card-content">
-          <img src="img/kao_duija.png" class="card-avatar" alt="" width="56" height="56" loading="lazy">
+          <img src="img/kao_duija.png" class="card-avatar" alt="" width="56" height="56" loading="lazy" decoding="async">
           <div class="card-info">
             <span class="platform-name">nnzzy</span>
             <span class="platform-sub">อันนี้ร่างเถื่อนเลย ใน Kick จะทำไรก็ได้ สตรีมแบบบ้านป่าเมืองเถื่อน</span>
@@ -593,11 +576,11 @@
         </div>
       </a>
 
-      <a href="https://linkdonate.com/duinnzzy" target="_blank" rel="noopener noreferrer" class="banner-card animate-fade-in delay-10" style="--brand-color: #0052FF;">
-        <div class="brand-logo"><img src="img/kao_duija.png" alt="" width="32" height="32" loading="lazy"></div>
+      <a href="https://linkdonate.com/duinnzzy" target="_blank" rel="noopener noreferrer" class="banner-card" style="--brand-color: #0052FF;">
+        <div class="brand-logo"><img src="img/kao_duija.png" alt="" width="32" height="32" loading="lazy" decoding="async"></div>
         <div class="card-banner" style="background-image: url('img/promptbid.jpg');"></div>
         <div class="card-content">
-          <img src="img/kao_duija.png" class="card-avatar" alt="" width="56" height="56" loading="lazy">
+          <img src="img/kao_duija.png" class="card-avatar" alt="" width="56" height="56" loading="lazy" decoding="async">
           <div class="card-info">
             <span class="platform-name">โดเนท LinkDonate</span>
             <span class="platform-sub">ขอเงินหน่อยคับ จะไปซื้อหนม ขอบคุณคับ💖</span>
@@ -606,11 +589,11 @@
         </div>
       </a>
 
-      <a href="https://mail.google.com/mail/?view=cm&fs=1&to=duinnzzycontact@gmail.com" target="_blank" rel="noopener noreferrer" class="banner-card animate-fade-in delay-11" style="--brand-color: #EA4335;" onclick="copyAndOpenEmail(event)">
-        <div class="brand-logo"><img src="img/gmail.png" alt="" width="32" height="32" loading="lazy"></div>
+      <a href="https://mail.google.com/mail/?view=cm&fs=1&to=duinnzzycontact@gmail.com" target="_blank" rel="noopener noreferrer" class="banner-card" style="--brand-color: #EA4335;" onclick="copyAndOpenEmail(event)">
+        <div class="brand-logo"><img src="img/gmail.png" alt="" width="32" height="32" loading="lazy" decoding="async"></div>
         <div class="card-banner" style="background-image: url('img/nnzzy_banner_gmail.png');"></div>
         <div class="card-content">
-          <img src="img/gmail.png" class="card-avatar" alt="" width="56" height="56" loading="lazy">
+          <img src="img/gmail.png" class="card-avatar" alt="" width="56" height="56" loading="lazy" decoding="async">
           <div class="card-info">
             <span class="platform-name">Email</span>
             <span class="platform-sub">for work only: duinnzzycontact@gmail.com</span>
@@ -621,12 +604,12 @@
 
     </div>
 
-    <div class="bottom-wrapper animate-fade-in delay-12">
+    <div class="bottom-wrapper">
       <a href="#" class="bottom-bar" onclick="window.scrollTo({top: 0, behavior: 'smooth'}); return false;">
         <span class="bottom-icon" aria-hidden="true">↑</span>
         <span>เลื่อนลงมาทำไมครับ เลื่อนกลับขึ้นไปเดี๋ยวนี้</span>
       </a>
-      <img src="img/DUI_OG_FULL_LICK.gif" alt="ดุ่ยเลียจอ" class="bottom-gif" width="52" height="52" loading="lazy" onclick="window.scrollTo({top: 0, behavior: 'smooth'});" title="เลียจอแล้ว เลื่อนกลับขึ้นไปเลย!">
+      <img src="img/DUI_OG_FULL_LICK.gif" alt="ดุ่ยเลียจอ" class="bottom-gif" width="52" height="52" loading="lazy" decoding="async" onclick="window.scrollTo({top: 0, behavior: 'smooth'});" title="เลียจอแล้ว เลื่อนกลับขึ้นไปเลย!">
     </div>
 
   </div>
