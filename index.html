@@ -11,6 +11,17 @@
 <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Kanit:wght@400;500;600&display=swap" onload="this.rel='stylesheet'">
 <noscript><link href="https://fonts.googleapis.com/css2?family=Kanit:wght@400;500;600&display=swap" rel="stylesheet"></noscript>
 
+<!-- โหลดสถานะ Theme ทันทีเพื่อป้องกันจอกระพริบ (FOUC) -->
+<script>
+  (function() {
+    const saved = localStorage.getItem('theme');
+    const prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+    if (saved === 'dark' || (!saved && prefersDark)) {
+      document.documentElement.setAttribute('data-theme', 'dark');
+    }
+  })();
+</script>
+
 <style>
   :root {
     --bg-color: #e5e7eb;
@@ -40,7 +51,6 @@
 
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
-  /* ใช้ will-change: background-color แทน transition ทุก property */
   body {
     font-family: 'Kanit', system-ui, sans-serif;
     background-color: var(--bg-color);
@@ -50,8 +60,7 @@
     align-items: flex-start;
     min-height: 100vh;
     padding: 60px 16px;
-    /* transition เฉพาะ property ที่จำเป็น ไม่ใช้ shorthand "all" */
-    transition: background-color 0.3s ease, color 0.3s ease;
+    -webkit-font-smoothing: antialiased;
   }
 
   .theme-switch-wrapper {
@@ -60,14 +69,21 @@
     right: 16px;
     z-index: 100;
   }
-  .theme-switch { display: inline-block; height: 34px; position: relative; width: 66px; }
+  .theme-switch {
+    display: inline-block;
+    height: 34px;
+    position: relative;
+    width: 66px;
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
+    user-select: none;
+  }
   .theme-switch input { display: none; }
   .slider {
     background-color: var(--switch-bg);
     bottom: 0; cursor: pointer; left: 0;
     position: absolute; right: 0; top: 0;
-    /* transition เฉพาะ background-color */
-    transition: background-color 0.3s ease;
+    transition: background-color 0.25s ease;
     border-radius: 34px;
     display: flex; align-items: center; justify-content: space-between;
     padding: 0 8px;
@@ -78,14 +94,14 @@
     bottom: 4px; content: "";
     height: 26px; left: 4px;
     position: absolute;
-    /* cubic-bezier เดิมดีอยู่แล้ว */
-    transition: transform 0.3s cubic-bezier(0.4, 0.0, 0.2, 1);
+    /* ใช้ translate3d เพื่อเร่งความเร็วด้วย GPU บนมือถือ */
+    transition: transform 0.25s cubic-bezier(0.4, 0.0, 0.2, 1);
+    transform: translate3d(0, 0, 0);
     width: 26px; border-radius: 50%; z-index: 2;
     box-shadow: 0 2px 4px rgba(0,0,0,0.2);
-    /* บอก browser ล่วงหน้าว่าจะ transform */
     will-change: transform;
   }
-  input:checked + .slider:before { transform: translateX(32px); }
+  input:checked + .slider:before { transform: translate3d(32px, 0, 0); }
   .slider-icon { font-size: 14px; z-index: 1; user-select: none; }
 
   .main-card {
@@ -95,10 +111,6 @@
     width: 100%;
     max-width: 440px;
     padding: 36px 20px;
-    /* ลบ backdrop-filter: blur ออก — หนักมากบน mid-range phones */
-    /* ลบ box-shadow ที่ใช้ glow ออก — ทำให้ repaint ทุก frame */
-    /* ใช้ border + bg แทน */
-    transition: background-color 0.3s ease, border-color 0.3s ease;
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -111,8 +123,6 @@
     border-radius: 50%; object-fit: cover;
     border: 3px solid var(--border-color);
     margin: 0 auto 10px; display: block;
-    /* lazy load รูปโปรไฟล์ */
-    loading: lazy;
   }
 
   .channel-name { font-size: 22px; font-weight: 600; margin-bottom: 2px; text-align: center; }
@@ -133,16 +143,12 @@
     color: var(--text-main);
     display: flex;
     flex-direction: column;
-    /* transform แทน margin/top เพื่อใช้ GPU layer */
     transition: transform 0.18s ease;
-    /* บอก browser ล่วงหน้า ลด recalc */
-    will-change: transform;
-    /* touch-action เพื่อให้ scroll ลื่นขึ้นบนมือถือ */
     touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
   }
   .banner-card:hover  { transform: translateY(-3px); }
   .banner-card:active { transform: scale(0.985); }
-  /* ลบ box-shadow hover ออก — ทำ repaint ทุก frame ที่ hover */
 
   .brand-logo {
     position: absolute; top: 10px; left: 10px;
@@ -182,8 +188,6 @@
     object-fit: cover;
     background-color: var(--card-bg);
     z-index: 5;
-    /* transition เฉพาะ border-color */
-    transition: border-color 0.3s ease;
   }
 
   .card-info {
@@ -218,6 +222,8 @@
     text-align: center;
     transition: filter 0.15s ease;
     touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
+    cursor: pointer;
   }
   .bottom-bar:hover  { filter: brightness(0.92); }
   .bottom-bar:active { filter: brightness(0.85); }
@@ -319,7 +325,7 @@
         </div>
       </a>
 
-      <a href="https://kick.com/nnzzy/about" target="_blank" rel="noopener noreferrer" class="banner-card" style="--brand-color:#15ff00; var(--tiktok-color);">
+      <a href="https://kick.com/nnzzy/about" target="_blank" rel="noopener noreferrer" class="banner-card" style="--brand-color: #53FC18;">
         <div class="brand-logo"><img src="img/kicklogo.png" alt="" width="30" height="30" loading="lazy"></div>
         <div class="card-banner" style="background-image: url('img/duibannerkick.jpg');"></div>
         <div class="card-content">
@@ -343,7 +349,7 @@
         </div>
       </a>
 
-      <a href="https://mail.google.com/" target="_blank" rel="noopener noreferrer" class="banner-card" style="--brand-color: #b48400;">
+      <a href="mailto:duinnzzycontact@gmail.com" class="banner-card" style="--brand-color: #b48400;">
         <div class="brand-logo"><img src="img/gmail.png" alt="" width="30" height="30" loading="lazy"></div>
         <div class="card-banner" style="background-image: url('img/nnzzy_banner_gmail.png');"></div>
         <div class="card-content">
@@ -357,30 +363,24 @@
 
     </div>
 
-    <a href="#" class="bottom-bar">เลื่อนลงมาทำไมครับ เลื่อนกลับขึ้นไปเดี๋ยวนี้</a>
+    <a href="#" class="bottom-bar" onclick="window.scrollTo({top: 0, behavior: 'smooth'}); return false;">เลื่อนลงมาทำไมครับ เลื่อนกลับขึ้นไปเดี๋ยวนี้</a>
 
   </div>
 
   <script>
-    // อ่าน theme ก่อน render เพื่อป้องกัน flash of unstyled content
-    (function() {
-      const saved = localStorage.getItem('theme');
-      if (saved === 'dark') {
-        document.body.setAttribute('data-theme', 'dark');
-      }
-    })();
-
     const toggle = document.getElementById('checkbox');
 
-    // sync checkbox กับ theme ที่ save ไว้
-    if (localStorage.getItem('theme') === 'dark') toggle.checked = true;
+    // sync checkbox กับ theme บน html
+    if (document.documentElement.getAttribute('data-theme') === 'dark') {
+      toggle.checked = true;
+    }
 
     toggle.addEventListener('change', function() {
       if (this.checked) {
-        document.body.setAttribute('data-theme', 'dark');
+        document.documentElement.setAttribute('data-theme', 'dark');
         localStorage.setItem('theme', 'dark');
       } else {
-        document.body.removeAttribute('data-theme');
+        document.documentElement.removeAttribute('data-theme');
         localStorage.setItem('theme', 'light');
       }
     });
